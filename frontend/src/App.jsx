@@ -6,60 +6,60 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   const messagesEndRef = useRef(null);
 
-  const [sessionId, setSessionId] = useState(null);
+  const BACKEND_URL = 'https://better-call-saul-backend-139206786021.us-central1.run.app';
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Create or restore session on mount
   useEffect(() => {
-    const createSession = async () => {
+    const initSession = async () => {
+      // Generate a unique session ID for this browser session
+      const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       try {
-        const response = await fetch('https://better-call-saul-backend-139206786021.us-central1.run.app/apps/corporate_law_squad/users/user_123/sessions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ state: {} })
-        });
-        if (!response.ok) {
-          throw new Error('Failed to create session');
+        // Create session on backend
+        const response = await fetch(
+          `${BACKEND_URL}/apps/corporate_law_squad/users/user_123/sessions/${newSessionId}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ state: {} })
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setSessionId(data.id);
+          console.log('Session created:', data.id);
+        } else {
+          console.error('Failed to create session:', await response.text());
         }
-        const data = await response.json();
-        setSessionId(data.id);
       } catch (error) {
         console.error('Error creating session:', error);
       }
     };
 
-    const savedSessionId = localStorage.getItem('sessionId');
-    if (savedSessionId) {
-      setSessionId(savedSessionId);
-    } else {
-      createSession();
-    }
+    initSession();
   }, []);
 
-  useEffect(() => {
-    if (sessionId) {
-      localStorage.setItem('sessionId', sessionId);
-    }
-  }, [sessionId]);
-
   const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-  
+    if (!input.trim() || loading || !sessionId) return;
+
     const userMessage = input.trim();
     setInput('');
     
     // Add user message to chat
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setLoading(true);
-  
+
     try {
-      // Directly run the agent (no session creation needed)
-      const runResponse = await fetch('https://better-call-saul-backend-139206786021.us-central1.run.app/run', {
+      const runResponse = await fetch(`${BACKEND_URL}/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,11 +72,11 @@ function App() {
           }
         })
       });
-  
+
       if (!runResponse.ok) {
-        throw new Error('Failed to get response from agent');
+        throw new Error(`Backend error: ${runResponse.status}`);
       }
-  
+
       const data = await runResponse.json();
       
       // Extract text from the response events
@@ -92,7 +92,7 @@ function App() {
           }
         }
       }
-  
+
       // Add agent response to chat
       if (agentText) {
         setMessages(prev => [...prev, { role: 'agent', text: agentText }]);
@@ -102,18 +102,17 @@ function App() {
           text: 'Sorry, I couldn\'t generate a response. Please try again.' 
         }]);
       }
-  
+
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { 
         role: 'agent', 
-        text: 'Error: Could not connect to the agent. Make sure the backend is running.' 
+        text: `Error: ${error.message}. Please refresh and try again.` 
       }]);
     } finally {
       setLoading(false);
     }
   };
-  
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -183,14 +182,14 @@ function App() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Describe your business situation..."
-            disabled={loading}
+            placeholder={sessionId ? "Describe your business situation..." : "Connecting to backend..."}
+            disabled={loading || !sessionId}
             rows="3"
           />
           <button 
             className="send-button" 
             onClick={sendMessage}
-            disabled={loading || !input.trim()}
+            disabled={loading || !input.trim() || !sessionId}
           >
             {loading ? '⏳' : '📤'} Send
           </button>
