@@ -8,10 +8,44 @@ function App() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  const [sessionId, setSessionId] = useState(null);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    const createSession = async () => {
+      try {
+        const response = await fetch('https://better-call-saul-backend-139206786021.us-central1.run.app/apps/corporate_law_squad/users/user_123/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: {} })
+        });
+        if (!response.ok) {
+          throw new Error('Failed to create session');
+        }
+        const data = await response.json();
+        setSessionId(data.id);
+      } catch (error) {
+        console.error('Error creating session:', error);
+      }
+    };
+
+    const savedSessionId = localStorage.getItem('sessionId');
+    if (savedSessionId) {
+      setSessionId(savedSessionId);
+    } else {
+      createSession();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sessionId) {
+      localStorage.setItem('sessionId', sessionId);
+    }
+  }, [sessionId]);
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -25,13 +59,13 @@ function App() {
   
     try {
       // Directly run the agent (no session creation needed)
-      const runResponse = await fetch('http://localhost:8000/run', {
+      const runResponse = await fetch('https://better-call-saul-backend-139206786021.us-central1.run.app/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           app_name: 'corporate_law_squad',
           user_id: 'user_123',
-          session_id: 'session_123',
+          session_id: sessionId,
           new_message: {
             role: 'user',
             parts: [{ text: userMessage }]
