@@ -1,6 +1,29 @@
+"""
+Better Call Saul - Multi-Agent Corporate Formation Advisory System
+
+This module defines a coordinated multi-agent system for business entity selection
+and formation strategy. The system combines tax, legal, and strategic expertise to
+provide comprehensive guidance on LLC vs S-Corp vs C-Corp decisions.
+
+Architecture:
+    - Three specialist agents (Tax CPA, Corporate Attorney, Business Strategist)
+    - One coordinator agent that orchestrates parallel consultation and synthesis
+    - All agents powered by Gemini 2.5 Flash for fast, cost-effective inference
+
+Usage:
+    The root_agent serves as the entry point for user interactions and delegates
+    to specialist sub-agents as needed.
+"""
+
 from google.adk.agents import Agent
 
+
+# ============================================================================
+# SPECIALIST AGENTS
+# ============================================================================
+
 # Tax CPA Agent
+# Primary focus: Tax implications, deductions, and fiscal optimization
 tax_agent = Agent(
     name="TaxCPA",
     model="gemini-2.5-flash",
@@ -13,7 +36,9 @@ tax_agent = Agent(
     ),
 )
 
+
 # Corporate Attorney Agent
+# Primary focus: Legal compliance, liability protection, and regulatory requirements
 legal_agent = Agent(
     name="CorporateAttorney",
     model="gemini-2.5-flash",
@@ -26,7 +51,9 @@ legal_agent = Agent(
     ),
 )
 
+
 # Business Strategist Agent
+# Primary focus: Growth strategy, scalability, and operational execution
 strategy_agent = Agent(
     name="BusinessStrategist",
     model="gemini-2.5-flash",
@@ -39,7 +66,15 @@ strategy_agent = Agent(
     ),
 )
 
-# Root Coordinator Agent (entrypoint)
+
+# ============================================================================
+# COORDINATOR AGENT (Entry Point)
+# ============================================================================
+
+# Root Coordinator Agent
+# Orchestrates the multi-agent consultation workflow and synthesizes recommendations.
+# This is the main interface that users interact with - it delegates to specialist
+# agents in parallel, resolves conflicts, and produces unified recommendations.
 root_agent = Agent(
     name="BetterCallSaulCoordinator",
     model="gemini-2.5-flash",
