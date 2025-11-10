@@ -26,7 +26,7 @@ from google.adk.agents import Agent
 # Primary focus: Tax implications, deductions, and fiscal optimization
 tax_agent = Agent(
     name="TaxCPA",
-    model="gemini-2.5-flash",
+    model="gemini-flash-latest",
     description="Expert tax CPA specializing in corporate tax strategy",
     instruction=(
         "You are a seasoned tax CPA.\n"
@@ -41,7 +41,7 @@ tax_agent = Agent(
 # Primary focus: Legal compliance, liability protection, and regulatory requirements
 legal_agent = Agent(
     name="CorporateAttorney",
-    model="gemini-2.5-flash",
+    model="gemini-flash-latest",
     description="Corporate attorney specializing in business formation and compliance",
     instruction=(
         "You are a corporate attorney.\n"
@@ -56,7 +56,7 @@ legal_agent = Agent(
 # Primary focus: Growth strategy, scalability, and operational execution
 strategy_agent = Agent(
     name="BusinessStrategist",
-    model="gemini-2.5-flash",
+    model="gemini-flash-latest",
     description="Business consultant focused on formation strategy and growth",
     instruction=(
         "You are a business strategist.\n"
@@ -77,7 +77,7 @@ strategy_agent = Agent(
 # agents in parallel, resolves conflicts, and produces unified recommendations.
 root_agent = Agent(
     name="BetterCallSaulCoordinator",
-    model="gemini-2.5-flash",
+    model="gemini-flash-latest",
     description="Lead consultant coordinating the corporate-law squad",
     instruction=(
         "You coordinate specialists to recommend the best entity and plan.\n"
